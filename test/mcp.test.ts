@@ -16,6 +16,8 @@ const fakeApi: Fetcher = {
     if (url.pathname === '/v1/messages') return Response.json({ data: [{ id: 'msg_1', status: 'delivered' }], next_cursor: null });
     if (url.pathname === '/v1/senders') return Response.json({ data: [{ name: 'PRZYPOMINAM', status: 'active', is_default: false, own: false }], current: null });
     if (url.pathname === '/v1/reports') return Response.json({ totals: { count: 3, cost_grosze: 45 }, data: [] });
+    if (url.pathname === '/v1/contacts' && req.method === 'POST') return Response.json({ created: (body as unknown[]).length, updated: 0, invalid: [] }, { status: 201 });
+    if (url.pathname.startsWith('/v1/messages/') && req.method === 'DELETE') return Response.json({ id: url.pathname.split('/').pop(), status: 'cancelled' });
     return Response.json({ error: { code: 'not_found', message: 'brak' } }, { status: 404 });
   },
 } as unknown as Fetcher;
@@ -52,7 +54,7 @@ describe('MCP przypominamy', () => {
     expect(init.body.result.instructions).toMatch(/potwierdzenie/);
     const list = await rpc('tools/list');
     const names = list.body.result.tools.map((t: { name: string }) => t.name).sort();
-    expect(names).toEqual(['count_sms_parts', 'get_account', 'get_message', 'get_report', 'list_messages', 'list_senders', 'send_sms', 'send_voice', 'set_default_sender']);
+    expect(names).toEqual(['add_to_blacklist', 'add_to_group', 'cancel_message', 'count_sms_parts', 'delete_contact', 'get_account', 'get_message', 'get_report', 'list_blacklist', 'list_contacts', 'list_groups', 'list_messages', 'list_senders', 'remove_from_blacklist', 'send_sms', 'send_voice', 'set_default_sender', 'set_send_window', 'upsert_contacts']);
     const send = list.body.result.tools.find((t: { name: string }) => t.name === 'send_sms');
     expect(send.annotations.destructiveHint).toBe(true);
     expect(send.inputSchema.required).toContain('to');
@@ -91,6 +93,15 @@ describe('MCP przypominamy', () => {
     calls.length = 0;
     await rpc('tools/call', { name: 'list_messages', arguments: { status: 'delivered', limit: 5 } });
     expect(calls[0].path).toBe('/v1/messages?status=delivered&limit=5');
+    calls.length = 0;
+    const up = await rpc('tools/call', { name: 'upsert_contacts', arguments: { contacts: [{ msisdn: '+48600100200', first_name: 'Anna', fields: { wizyta: '10.09' }, groups: ['VIP'] }] } });
+    expect(up.body.result.structuredContent.created).toBe(1);
+    expect(calls[0]).toMatchObject({ method: 'POST', path: '/v1/contacts', body: [{ msisdn: '+48600100200', first_name: 'Anna', fields: { wizyta: '10.09' }, groups: ['VIP'] }] });
+    const grp = await rpc('tools/call', { name: 'send_sms', arguments: { to: 'group:VIP', text: 'Hej {{imie}} {{opt_out}}', send_window: '08:00-20:00' } });
+    expect(grp.body.result.isError).toBeFalsy();
+    expect(calls[1].body).toMatchObject({ to: 'group:VIP', send_window: '08:00-20:00' });
+    const cx = await rpc('tools/call', { name: 'cancel_message', arguments: { id: 'msg_1' } });
+    expect(cx.body.result.structuredContent.status).toBe('cancelled');
     const p = await rpc('prompts/get', { name: 'reminder_sms', arguments: { cel: 'wizyta 10.09 o 14:00' } });
     expect(p.body.result.messages[0].content.text).toMatch(/wizyta 10.09/);
   });
