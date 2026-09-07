@@ -11,5 +11,5 @@
     "isolatedModules": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "../gateway/src/sms.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts"]
 }
