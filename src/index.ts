@@ -91,12 +91,15 @@ export function buildServer(env: Env, auth: string, groups: Group[]): McpServer 
       description: 'Wysyła SMS na jeden lub wiele numerów (maks. 500). Koszt = liczba części × cena klienta. Zwraca id wiadomości, status i koszt. Wymaga wyraźnego potwierdzenia użytkownika: to realna wysyłka i realny koszt.',
       inputSchema: {
         to: recipients,
-        text: z.string().min(1).max(1000).describe('Treść wiadomości (do 1000 znaków, dzielona na części). Placeholdery: {{imie}}, {{nazwisko}}, pola własne kontaktu, {{opt_out}} = osobisty link wypisu (wymagany w SMS-ach marketingowych).'),
+        text: z.string().min(1).max(1000).optional().describe('Treść wiadomości (do 1000 znaków, dzielona na części); pomiń, gdy podajesz template_id. Placeholdery: {{imie}}, {{nazwisko}}, pola własne kontaktu, {{opt_out}} = osobisty link wypisu (wymagany w SMS-ach marketingowych).'),
         from: z.string().max(11).optional().describe('Nazwa nadawcy (nadpis). Pomiń, by użyć domyślnego nadpisu konta. Dostępne nazwy: list_senders.'),
         send_at: sendAt,
         send_window: sendWindow,
         expires_at: expiresAt,
         reference,
+        template_id: z.string().optional().describe('Id szablonu (tpl_…) z list_templates zamiast text; {{klucz}} w szablonie podstawiane z params.'),
+        params: z.record(z.string(), z.string()).optional().describe('Wartości do szablonu, np. {"imie":"Anno","kiedy":"jutro 10:00"}.'),
+        priority: z.boolean().optional().describe('SMS priorytetowy (osobna kolejka dla kodów i alertów, podwójna cena).'),
       },
       annotations: { destructiveHint: true, idempotentHint: false, openWorldHint: true },
     }, async (input) => {
@@ -146,6 +149,33 @@ export function buildServer(env: Env, auth: string, groups: Group[]): McpServer 
       annotations: { destructiveHint: true, idempotentHint: true, openWorldHint: true },
     }, async ({ id }) => {
       try { return ok(await api(env, auth, 'DELETE', `/v1/messages/${encodeURIComponent(id)}`)); } catch (e) { return err(e); }
+    });
+
+    server.registerTool('list_templates', {
+      title: 'Szablony wiadomości',
+      description: 'Szablony klienta (z panelu lub API) z listą placeholderów. Użyj id w send_sms jako template_id z params.',
+      inputSchema: {},
+      annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+    }, async () => {
+      try { return ok(await api(env, auth, 'GET', '/v1/templates')); } catch (e) { return err(e); }
+    });
+
+    server.registerTool('save_template', {
+      title: 'Zapisz szablon',
+      description: 'Tworzy szablon SMS/MMS/głosowy z placeholderami {{klucz}}. Podaj id, żeby zaktualizować istniejący.',
+      inputSchema: { id: z.string().optional(), name: z.string().max(60), type: z.enum(['sms', 'mms', 'vms']).optional(), body: z.string().max(5000), subject: z.string().max(80).optional() },
+      annotations: { destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    }, async ({ id, ...rest }) => {
+      try { return ok(id ? await api(env, auth, 'PATCH', `/v1/templates/${encodeURIComponent(id)}`, rest) : await api(env, auth, 'POST', '/v1/templates', rest)); } catch (e) { return err(e); }
+    });
+
+    server.registerTool('check_number', {
+      title: 'Sprawdź numer (HLR)',
+      description: 'Sprawdza u operatora, czy numer jest aktywny i w jakiej sieci, bez wysyłania SMS-a. Kosztuje cenę HLR klienta (zwykle 0,05 zł); ponowne sprawdzenie w 24 h jest z pamięci i bezpłatne. Konto testowe: tylko zweryfikowane numery.',
+      inputSchema: { msisdn: phone },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    }, async ({ msisdn }) => {
+      try { return ok(await api(env, auth, 'GET', `/v1/numbers/${encodeURIComponent(msisdn)}/lookup`)); } catch (e) { return err(e); }
     });
 
     server.registerTool('list_messages', {
