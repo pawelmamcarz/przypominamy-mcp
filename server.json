@@ -1,0 +1,11 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.json",
+  "name": "io.github.pawelmamcarz/przypominamy",
+  "description": "Polish SMS & voice gateway (przypominamy.com): send SMS/TTS calls, contacts & groups, blacklist/opt-out, tracked links, replies, delivery reports. Bearer = your API key.",
+  "status": "active",
+  "repository": { "url": "https://github.com/pawelmamcarz/przypominamy-com", "source": "github" },
+  "version": "1.2.0",
+  "remotes": [
+    { "type": "streamable-http", "url": "https://mcp.przypominamy.com/mcp", "headers": [ { "name": "Authorization", "description": "Bearer <API key from https://app.przypominamy.com/keys>", "is_required": true, "is_secret": true } ] }
+  ]
+}
