@@ -1,8 +1,9 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.pawelmamcarz/przypominamy",
+  "title": "Przypominamy.com SMS",
   "description": "Polish SMS & voice gateway: send SMS/TTS, contacts, blacklist, tracked links, replies, reports.",
-  "status": "active",
+  "websiteUrl": "https://przypominamy.com/mcp",
   "repository": {
     "url": "https://github.com/pawelmamcarz/przypominamy-mcp",
     "source": "github"
@@ -16,8 +17,8 @@
         {
           "name": "Authorization",
           "description": "Bearer <API key from https://app.przypominamy.com/keys>",
-          "is_required": true,
-          "is_secret": true
+          "isRequired": true,
+          "isSecret": true
         }
       ]
     }
