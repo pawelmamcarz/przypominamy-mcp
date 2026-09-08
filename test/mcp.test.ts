@@ -119,3 +119,13 @@ describe('MCP przypominamy', () => {
     expect(p.body.result.messages[0].content.text).toMatch(/wizyta 10.09/);
   });
 });
+
+it('karta serwera /.well-known/mcp/server-card.json bez logowania z listą narzędzi', async () => {
+  const r = await worker.fetch(new Request('https://mcp.przypominamy.com/.well-known/mcp/server-card.json'), testEnv);
+  expect(r.status).toBe(200);
+  const card = await r.json() as { serverInfo: { name: string }; authentication: { schemes: string[] }; tools: { name: string }[]; toolCount: number };
+  expect(card.serverInfo.name).toBe('przypominamy');
+  expect(card.authentication.schemes).toEqual(['bearer']);
+  expect(card.toolCount).toBe(25);
+  expect(card.tools.map((t) => t.name)).toContain('send_sms');
+});

@@ -397,6 +397,20 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, '');
     const m = /^(?:\/mcp)?(?:\/(sms|account|reports|contacts))?$/.exec(path);
+    // Karta serwera dla katalogów (Smithery i inne skanery): narzędzia i schemat auth bez logowania.
+    if (path === '/.well-known/mcp/server-card.json') {
+      const probe = buildServer(env, 'Bearer pk_live_probe', GROUPS['']!);
+      const tools = Object.values((probe as unknown as { _registeredTools: Record<string, { title?: string; description?: string; annotations?: Record<string, unknown> }> })._registeredTools ?? {});
+      return json(200, {
+        serverInfo: { ...SERVER_INFO, title: 'Przypominamy.com SMS', websiteUrl: env.DOCS_URL },
+        authentication: { required: true, schemes: ['bearer'], description: 'Authorization: Bearer <API key from https://app.przypominamy.com/keys>' },
+        transport: { type: 'streamable-http', url: `${url.origin}/mcp` },
+        tools: Object.entries((probe as unknown as { _registeredTools: Record<string, { title?: string; description?: string; annotations?: Record<string, unknown> }> })._registeredTools ?? {}).map(([name, t]) => ({ name, title: t.title, description: t.description, annotations: t.annotations })),
+        prompts: [{ name: 'reminder_sms', description: 'Układa krótkie przypomnienie SMS i pyta o potwierdzenie przed wysyłką.' }],
+        resources: [],
+        toolCount: tools.length,
+      }, { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=3600' });
+    }
     if (!m) return json(404, { error: 'not_found', docs: env.DOCS_URL });
 
     if (request.method === 'OPTIONS') {
