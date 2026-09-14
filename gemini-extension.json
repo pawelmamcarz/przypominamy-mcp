@@ -1,0 +1,14 @@
+{
+  "name": "przypominamy",
+  "version": "1.3.0",
+  "description": "Polish SMS and voice gateway via hosted MCP (przypominamy.com).",
+  "mcpServers": {
+    "przypominamy": {
+      "httpUrl": "https://mcp.przypominamy.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${PRZYPOMINAMY_API_KEY}"
+      }
+    }
+  },
+  "contextFileName": "GEMINI.md"
+}
