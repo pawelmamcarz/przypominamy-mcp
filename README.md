@@ -1,5 +1,8 @@
 # przypominamy-mcp
 
+[![AllMCPs](https://allmcps.com/api/badge/przypominamy-com-sms?style=shield)](https://allmcps.com/mcp/przypominamy-com-sms)
+
+
 Serwer MCP (Model Context Protocol) przypominamy.com. Cloudflare Worker `przypominamy-mcp` pod
 `https://mcp.przypominamy.com`. Cienka warstwa nad bramką REST (`gateway/`): każde narzędzie woła
 `api.przypominamy.com/v1/*` przez service binding `API` z kluczem klienta z nagłówka `Authorization`.
@@ -80,6 +83,13 @@ Lub w Claude Code:
 
 ```bash
 claude mcp add przypominamy --transport http https://mcp.przypominamy.com/mcp --header "Authorization: Bearer pk_test_TWOJ_KLUCZ"
+```
+
+Lub w Gemini CLI:
+
+```bash
+gemini extensions install https://github.com/pawelmamcarz/przypominamy-mcp
+export PRZYPOMINAMY_API_KEY=pk_test_TWOJ_KLUCZ
 ```
 
 ## Gdzie jeszcze jest opisany
