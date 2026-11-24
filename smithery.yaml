@@ -1,0 +1,41 @@
+# Smithery: https://smithery.ai/servers/przypominamy/sms
+name: przypominamy/sms
+displayName: Przypominamy.com SMS
+description: >
+  Hosted Polish SMS and voice MCP for AI agents. Send SMS and TTS, schedule
+  messages, manage contacts, groups and opt-outs, look up numbers (HLR), and
+  read delivery reports. Streamable HTTP at https://mcp.przypominamy.com/mcp.
+  Prepaid API key from https://app.przypominamy.com/keys. Sending tools require
+  explicit user confirmation and spend real balance.
+version: 1.4.1
+license: MIT
+homepage: https://przypominamy.com/mcp
+repository: https://github.com/pawelmamcarz/przypominamy-mcp
+icon: https://przypominamy.com/favicon-512.png
+categories:
+  - communication
+  - productivity
+  - developer-tools
+tags:
+  - sms
+  - poland
+  - voice
+  - tts
+  - mcp
+  - otp
+  - notifications
+startCommand:
+  type: http
+  configSchema:
+    type: object
+    required:
+      - apiKey
+    properties:
+      apiKey:
+        type: string
+        title: API key
+        description: pk_live_… or pk_test_… from https://app.przypominamy.com/keys (Bearer prefix optional)
+        x-from:
+          header: x-przypominamy-key
+        x-to:
+          header: Authorization

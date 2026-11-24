@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "required": ["apiKey"],
+  "properties": {
+    "apiKey": {
+      "type": "string",
+      "title": "API key",
+      "description": "pk_live_… or pk_test_… from https://app.przypominamy.com/keys. Paste the key only — Bearer prefix is optional.",
+      "x-from": { "header": "x-przypominamy-key" },
+      "x-to": { "header": "Authorization" },
+      "x-order": 0
+    }
+  }
+}

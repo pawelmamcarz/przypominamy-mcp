@@ -11,7 +11,7 @@ export interface Segmentation {
   length: number;
 }
 
-/** Liczba części SMS wg realnego kodowania treści (SMSAPI nalicza po zawartości). */
+/** Liczba części SMS wg realnego kodowania treści (naliczanie po zawartości). */
 export function segment(text: string): Segmentation {
   let units = 0;
   let unicode = false;
@@ -31,7 +31,7 @@ export function segment(text: string): Segmentation {
 }
 
 /**
- * Normalizuje numer do postaci E.164 bez plusa (tak przyjmuje SMSAPI), np. "48600100200".
+ * Normalizuje numer do postaci E.164 bez plusa (tak przyjmuje bramka), np. "48600100200".
  * Akceptuje: "+48 600 100 200", "600100200" (domyślnie PL), "0048600100200".
  * Zwraca null, gdy numer nie wygląda na poprawny.
  */
@@ -50,7 +50,7 @@ export function formatE164(msisdn: string): string {
   return `+${msisdn}`;
 }
 
-/** Pole nadawcy: 1–11 znaków alfanumerycznych (wymóg SMSAPI dla nazw). */
+/** Pole nadawcy: 1–11 znaków alfanumerycznych (wymóg bramki dla nazw). */
 export function validateSender(sender: unknown): string | null {
   if (typeof sender !== 'string') return null;
   const s = sender.trim();
